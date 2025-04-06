@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD UI - Animated</title>
+    <title>Rgistration and upload</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,14 +11,17 @@
     <!-- Navigation Menu -->
     <nav>
         <ul>
-            <li><a href="#" id="createUserBtn">Create User</a></li>
-            <li><a href="#" id="readUserBtn">Read User</a></li>
+            <li><a href="#" id="createUserBtn">Izveidot</a></li>
+            <li><a href="#" id="readUserBtn">Skatit</a></li>
+            <li><a href="#" id="uploadFileBtn">Upload File</a></li>
+            <li><a href="#" id="deleteFileBtn">Delete File</a></li>
+        </ul>
         </ul>
     </nav>
 
     <!-- Create User Form -->
     <section id="createUserSection">
-        <h2>Create User</h2>
+        <h2>Registreties</h2>
         <form id="userForm">
             <div class="input-group">
                 <input type="text" id="firstName" required>
@@ -44,6 +47,10 @@
                 <input type="password" id="password" required>
                 <label for="password">Password</label>
             </div>
+            <div class="input-group">
+                <input type="date" id="date_birth" required>
+                <label for="date">Dzimsanas datums</label>
+            </div>
 
             <button type="submit" class="wave-button">Create Account</button>
         </form>
@@ -54,7 +61,40 @@
         <h2>Read Users</h2>
         <p>Coming soon...</p>
     </section>
+   
 
     <script src="script.js"></script>
+
+
+
+    <section id="uploadFileSection">
+        <h2>Upload File</h2>
+        <form id="fileUploadForm" action="upload.php" method="POST" enctype="multipart/form-data">
+            <div class="input-group">
+                <input type="file" id="fileInput" name="uploadedFile" required>
+                <label for="fileInput" id="fileLabel">No file selected</label>
+            </div>
+            <button type="submit" class="breathing-button">Upload</button>
+        </form>
+    </section>
+
+
+    <section id="deleteFileSection" style="display: none;">
+        <h2>Delete File</h2>
+        <p>Delete functionality coming soon...</p>
+    </section>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const successMessage = urlParams.get('successMessage');
+    
+            if (successMessage) {
+                alert(decodeURIComponent(successMessage));
+                history.replaceState(null, "", window.location.pathname);
+            }
+        });
+    </script>
 </body>
 </html>

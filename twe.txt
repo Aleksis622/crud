@@ -1,0 +1,13 @@
+
+CREATE DATABASE IF NOT EXISTS REGISTRATION;
+USE REGISTRATION;
+CREATE TABLE IF NOT EXISTS sign_up(
+    id INT(50) AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    phone_number INT(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    date_birth VARCHAR(255) NOT NULL);
+ALTER TABLE sign_up<{{{><}}}>ADD file_name VARCHAR(255)
+ALTER TABLE sign_up<{{{><}}}>ADD file_path VARCHAR(255)
