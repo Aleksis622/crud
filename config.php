@@ -1,6 +1,6 @@
 <?php
 $host = "localhost";
-$dbname = "crud_system";
+$dbname = "REGISTRATION";
 $username = "root";
 $password = "root";
 

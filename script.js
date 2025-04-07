@@ -18,6 +18,9 @@ function validateForm() {
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{15,}$/; // Password with special symbols, minimum 15 characters
     const phoneRegex = /^[0-9]{8}$/; // Exactly 8 digits
 
+;const allowedEmailDomains = ['gmail.com', 'yahoo.com', 'outlook.com ', 'inbox.lv']; // Add domains as needed
+const emailDomain = email.split('@')[1];
+
     const today = new Date().toISOString().split('T')[0]; // format: YYYY-MM-DD
 
     // Validate First Name (letters, at least 2 characters)
@@ -79,44 +82,62 @@ document.getElementById('userForm').addEventListener('submit', (e) => {
 //create
 document.getElementById('userForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+    
     if (!validateForm()) {
         return; // If validation fails, do not proceed
     }
+
     let formData = new FormData();
     formData.append("firstName", document.getElementById('firstName').value);
     formData.append("lastName", document.getElementById('lastName').value);
     formData.append("email", document.getElementById('email').value);
-    formData.append("phone", document.getElementById('phone').value); // ✅ keep as string
+    formData.append("phone", document.getElementById('phone').value);
     formData.append("password", document.getElementById('password').value);
     formData.append("date_birth", document.getElementById('date_birth').value);
 
     try {
-        // Making sure the response is awaited correctly
-        let response = await fetch("create_user.php", {
-            method: "POST",
+        // Make the fetch request to the PHP script
+        let response = await fetch('create_user.php', {
+            method: 'POST',
             body: formData
         });
 
-        let result = await response.json();
-
-        // Handle result
-        if (result.status === "success") {
-            alert(result.message);
-        } else {
-            alert("Error: " + result.message);
+        // Ensure the response is valid and we received JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("An error occurred while creating the user.");
-    } let response = await fetch("create_user.php", {
-        method: "POST",
-        body: formData
-    });
-   
 
-    let result = await response.json();
-    alert(result.message);
+        const text = await response.text();
+        
+        // Check if the response body is HTML instead of JSON
+        if (text.trim().startsWith("<")) {
+            throw new Error("Server returned HTML instead of JSON. Check PHP errors.");
+        }
+
+        // Parse the JSON response safely
+        const data = JSON.parse(text);
+        console.log("✅ Parsed JSON:", data);
+        alert(data.message);
+
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("Error: " + error.message);
+    }
+
+    console.log("✅ Sending this data:", {
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        password: document.getElementById('password').value,
+        date_birth: document.getElementById('date_birth').value
+    });
 });
+
+   
+   // let result = await response.json();
+   // alert(result.message);
+
 ;
    
 //update form
@@ -172,7 +193,33 @@ document.getElementById('readUserBtn').addEventListener('click', async function 
         }
     });
     
-    
+    document.addEventListener('click', function (e) {
+        if (e.target && e.target.classList.contains('deleteBtn')) {
+            console.log("✅ Delete button clicked");
+            const row = e.target.closest('tr');
+            const userId = row.children[0].textContent; // Get the user ID
+            
+            // Confirm the delete action
+            if (confirm(`Are you sure you want to delete user with ID ${userId}?`)) {
+                // Send a DELETE request to the server
+                fetch(`delete_user.php?id=${userId}`, {
+                    method: 'DELETE',
+                })
+                .then(response => response.json())
+                .then(result => {
+                    console.log("🟢 Response from server:", result);
+                    alert(result.message);
+                    if (result.status === "success") {
+                        document.getElementById('readUserBtn').click(); // Refresh list
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Error while deleting:", error);
+                    alert("Something went wrong while deleting.");
+                });
+            }
+        }
+    });
 
     let readSection = document.getElementById('readUserSection');
     readSection.innerHTML = "<h2>Users List</h2>";
@@ -207,12 +254,49 @@ document.getElementById('readUserBtn').addEventListener('click', async function 
                     <td>${user.date_birth}</td>
                     <td>
                         <button class="updateBtn" data-id="${user.id}">Update</button>
+                        <button class="deleteBtn" data-id="${user.id}">Delete</button>
                     </td>
                 </tr>
             `;
         });
         
+        ocument.getElementById("fileInput").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            const filePreview = document.getElementById("filePreview");
+            filePreview.innerHTML = ""; // Reset preview
         
+            // Show a preview based on file type
+            if (file) {
+                const fileReader = new FileReader();
+        
+                fileReader.onload = function (event) {
+                    const fileType = file.type;
+                    const fileUrl = event.target.result;
+        
+                    if (fileType.startsWith("image/")) {
+                        // Preview image
+                        const img = document.createElement("img");
+                        img.src = fileUrl;
+                        img.style.maxWidth = "200px";  // Adjust preview size as needed
+                        filePreview.appendChild(img);
+                    } else if (fileType === "application/pdf") {
+                        // Preview PDF (display icon)
+                        filePreview.innerHTML = "<p>PDF Preview is not available here, but the file can be downloaded.</p>";
+                    } else if (fileType.startsWith("audio/") || fileType.startsWith("video/")) {
+                        // Preview audio/video files
+                        const media = document.createElement(fileType.startsWith("audio/") ? "audio" : "video");
+                        media.controls = true;
+                        media.src = fileUrl;
+                        filePreview.appendChild(media);
+                    } else {
+                        // Handle unsupported file types
+                        filePreview.innerHTML = "<p>No preview available for this file type.</p>";
+                    }
+                };
+        
+                fileReader.readAsDataURL(file);
+            }
+        });
 
         table += `</tbody></table>`;
         readSection.innerHTML += table;
